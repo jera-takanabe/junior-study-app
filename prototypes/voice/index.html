@@ -22,6 +22,7 @@ button:disabled{opacity:.55}button.secondary{background:#56657a}
 <section>
 <p id="support" role="status">機能を確認中…</p>
 <button id="start">音声練習を開始</button>
+<button id="testSpeech" class="secondary">読み上げテスト</button>
 <button id="stop" class="secondary" disabled>中止</button>
 <p class="status" id="status" aria-live="polite">開始待ち</p>
 <p id="progress">0 / 3 問</p>
@@ -126,6 +127,20 @@ async function start(){
   if(token===runId){cleanup();finish("停止しました："+(e?.message||String(e)));log("端末・OS・ブラウザと最後のログを控えてください");}
  }
 }
+$("testSpeech").addEventListener("click",()=>{
+ if(active){status("実行中の練習を中止してからテストしてください");return;}
+ status("読み上げテスト：開始");
+ try{
+  window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance("音声のテストです。聞こえますか。");
+  u.lang="ja-JP";u.rate=0.9;
+  u.onstart=()=>status("読み上げテスト：音声開始イベント受信");
+  u.onend=()=>status("読み上げテスト：正常終了");
+  u.onerror=e=>status("読み上げテスト：エラー "+e.error);
+  window.speechSynthesis.speak(u);
+  setTimeout(()=>{if($("status").textContent.startsWith("読み上げテスト：開始"))status("読み上げテスト：開始イベントなし（10秒）");},10000);
+ }catch(e){status("読み上げテスト：例外 "+e.message);}
+});
 $("start").addEventListener("click",start);
 $("stop").addEventListener("click",()=>{++runId;cleanup();finish("手動で中止しました");});
 window.addEventListener("pagehide",()=>{++runId;cleanup();});
