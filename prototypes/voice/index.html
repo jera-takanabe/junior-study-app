@@ -97,17 +97,20 @@ async function start(){
  currentUrls.forEach(url=>URL.revokeObjectURL(url));currentUrls=[];recordings=[];renderRecordings();$("log").textContent="";
  const token=++runId;active=true;buttons(true);
  try{
-  // Request microphone inside the user's click so browsers can grant permission.
-  status("マイク利用の許可を確認中");
-  const permissionStream=await navigator.mediaDevices.getUserMedia({audio:true});
-  permissionStream.getTracks().forEach(t=>t.stop());
-  if(token!==runId)return;
+  // On iPad Safari, begin the first utterance directly in the tap handler.
+  // Awaiting microphone permission first can consume the user activation.
   for(let i=0;i<questions.length;i++){
    if(token!==runId)return;
    showQuestion(i);
    status("第"+(i+1)+"問：読み上げ中");
    await speak(questions[i].text,token);
    if(token!==runId)return;
+   if(i===0){
+    status("マイク利用の許可を確認中");
+    const permissionStream=await navigator.mediaDevices.getUserMedia({audio:true});
+    permissionStream.getTracks().forEach(t=>t.stop());
+    if(token!==runId)return;
+   }
    await wait(250);
    if(token!==runId)return;
    status("回答開始の案内を読み上げ中");
