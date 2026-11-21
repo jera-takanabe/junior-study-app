@@ -88,7 +88,25 @@ function renderRecordings(){
   const li=document.createElement("li");const label=document.createElement("div");
   label.textContent="第"+(i+1)+"問｜想定回答："+questions[item.question].expected+"｜録音 "+Math.round(item.blob.size/1024)+" KB";
   const audio=document.createElement("audio");audio.controls=true;audio.src=item.url;
-  li.append(label,audio);list.append(li);
+  li.append(label,audio);
+
+  const mediaType = item.blob.type.split(";")[0].toLowerCase();
+  const extension = {
+   "audio/mp4": "mp4",
+   "audio/webm": "webm",
+   "video/mp4": "mp4",
+   "video/webm": "webm"
+  }[mediaType];
+  if(extension && item.blob.size > 0){
+   const download = document.createElement("a");
+   const number = String(item.question + 1).padStart(2, "0");
+   download.href = item.url;
+   download.download = "answer-" + number + "." + extension;
+   download.textContent = "第" + (item.question + 1) + "問の録音を保存（" + extension.toUpperCase() + "）";
+   li.append(download);
+  }
+
+  list.append(li);
  });
 }
 function finish(message){active=false;buttons(false);releaseStream();status(message);}
